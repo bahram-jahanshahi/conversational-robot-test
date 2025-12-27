@@ -36,7 +36,7 @@ public class CoversationalRobotTestApplication implements ApplicationRunner {
 
     }
 
-    @Scheduled(fixedDelay = 10000)
+    //@Scheduled(fixedDelay = 10000)
     public void capturePhoto() throws Exception {
         String description = describePhotoByOpenAi.execute();
         System.out.println("Photo description: " + description);
