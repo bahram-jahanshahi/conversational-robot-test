@@ -1,0 +1,26 @@
+server:
+    port: 18081
+spring:
+  application:
+    name: Coversational Robot Test
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+app:
+  upload:
+    directory: ${captured_image_upload_dir}
