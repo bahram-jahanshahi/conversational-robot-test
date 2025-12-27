@@ -1,8 +1,10 @@
 package se.bahram.robotic.coversational_robot_test.usecases.listen_by_mic.applications;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import se.bahram.robotic.coversational_robot_test.usecases.chat_with_robot.applications.ports.in.CommandRobot;
 import se.bahram.robotic.coversational_robot_test.usecases.listen_by_mic.applications.ports.in.PauseListening;
 import se.bahram.robotic.coversational_robot_test.usecases.listen_by_mic.applications.ports.in.ResumeListening;
 import se.bahram.robotic.coversational_robot_test.usecases.listen_by_mic.applications.ports.in.WokeByMic;
@@ -14,20 +16,24 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 @Service
+@Slf4j
 public class WokeByMicService implements WokeByMic {
 
     private final TranscribeAudio transcribeAudio;
     private final PauseListening pauseListening;
     private final ResumeListening resumeListening;
 
+    private final CommandRobot commandRobot;
+
 
     @Value("${app.upload.directory}")
     String uploadDirectory;
 
-    public WokeByMicService(TranscribeAudio transcribeAudio, PauseListening pauseListening, ResumeListening resumeListening) {
+    public WokeByMicService(TranscribeAudio transcribeAudio, PauseListening pauseListening, ResumeListening resumeListening, CommandRobot commandRobot) {
         this.transcribeAudio = transcribeAudio;
         this.pauseListening = pauseListening;
         this.resumeListening = resumeListening;
+        this.commandRobot = commandRobot;
     }
 
     @Override
@@ -48,7 +54,10 @@ public class WokeByMicService implements WokeByMic {
         this.pauseListening.execute();
 
         var transcription = this.transcribeAudio.execute(out.toFile().getAbsolutePath());
-        System.out.println("Transcription: " + transcription);
+
+        var reply = commandRobot.execute(transcription);
+
+        log.info("Robot reply to wake up command: {}", reply);
 
         this.resumeListening.execute();
     }

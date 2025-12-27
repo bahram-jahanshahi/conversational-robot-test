@@ -18,7 +18,7 @@ import java.io.File;
 @Service
 public class CapturePhotoViaPythonService implements CapturePhotoViaPython {
 
-    private static final String BASE_URL = "http://127.0.0.1:8000";
+    private static final String BASE_URL = "http://127.0.0.1:8001";
 
     private final RestTemplate restTemplate = new RestTemplate();
 

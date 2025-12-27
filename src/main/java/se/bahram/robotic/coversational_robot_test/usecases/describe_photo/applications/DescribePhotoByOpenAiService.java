@@ -1,5 +1,6 @@
 package se.bahram.robotic.coversational_robot_test.usecases.describe_photo.applications;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import java.util.Base64;
 
 @Service
+@Slf4j
 public class DescribePhotoByOpenAiService implements DescribePhotoByOpenAi {
 
     private final ChatClient chatClient;
@@ -27,8 +29,10 @@ public class DescribePhotoByOpenAiService implements DescribePhotoByOpenAi {
     @Override
     public String execute() throws Exception {
 
+        log.info("Starting to describe photo by open AI");
+        log.info("Capturing photo via python...");
         CapturedImage  capturedImage = this.capturePhotoViaPython.execute();
-
+        log.info("Capturing photo via python done");
 
         String response = chatClient.prompt()
                 .user(u -> u.text("Tell me what you see in this image.")
@@ -36,7 +40,8 @@ public class DescribePhotoByOpenAiService implements DescribePhotoByOpenAi {
                 .call()
                 .content();
 
-
+        log.info("Capturing photo via python done");
+        log.info("The description of the photo is: {}", response);
         return response;
     }
 }
