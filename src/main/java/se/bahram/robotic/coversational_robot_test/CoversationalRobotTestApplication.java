@@ -10,6 +10,7 @@ import se.bahram.robotic.coversational_robot_test.usecases.capture_photo.applica
 import se.bahram.robotic.coversational_robot_test.usecases.describe_photo.applications.ports.in.DescribePhotoByOpenAi;
 import se.bahram.robotic.coversational_robot_test.usecases.text_to_speech.applications.TextToSpeechByOpenAiService;
 import se.bahram.robotic.coversational_robot_test.usecases.text_to_speech.domain.SavedAudio;
+import se.bahram.robotic.coversational_robot_test.usecases.wakeup_word.applications.PorcupineWakeWordService;
 
 
 @SpringBootApplication
@@ -19,11 +20,13 @@ public class CoversationalRobotTestApplication implements ApplicationRunner {
     private final CapturePhotoViaPython capturePhotoViaPython;
     private final DescribePhotoByOpenAi describePhotoByOpenAi;
     private final TextToSpeechByOpenAiService textToSpeechByOpenAiService;
+    private final PorcupineWakeWordService porcupineWakeWordService;
 
-    public CoversationalRobotTestApplication(CapturePhotoViaPython capturePhotoViaPython, DescribePhotoByOpenAi describePhotoByOpenAi, TextToSpeechByOpenAiService textToSpeechByOpenAiService) {
+    public CoversationalRobotTestApplication(CapturePhotoViaPython capturePhotoViaPython, DescribePhotoByOpenAi describePhotoByOpenAi, TextToSpeechByOpenAiService textToSpeechByOpenAiService, PorcupineWakeWordService porcupineWakeWordService) {
         this.capturePhotoViaPython = capturePhotoViaPython;
         this.describePhotoByOpenAi = describePhotoByOpenAi;
         this.textToSpeechByOpenAiService = textToSpeechByOpenAiService;
+        this.porcupineWakeWordService = porcupineWakeWordService;
     }
 
     public static void main(String[] args) {
@@ -33,7 +36,7 @@ public class CoversationalRobotTestApplication implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
 
-
+        this.porcupineWakeWordService.execute();
     }
 
     //@Scheduled(fixedDelay = 10000)
