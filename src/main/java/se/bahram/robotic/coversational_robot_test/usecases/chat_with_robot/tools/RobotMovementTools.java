@@ -21,6 +21,7 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while stopping robot", e);
             return "Failed to stop robot";
         }
+        // delayFiveSecondsAndStop();
         return "Robot stopped";
     }
 
@@ -35,7 +36,7 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while moving robot forward", e);
             return "Failed to move robot forward";
         }
-
+        delayFiveSecondsAndStop();
         return "Robot moved forward";
     }
 
@@ -50,6 +51,7 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while moving robot backward", e);
             return "Failed to move robot backward";
         }
+        delayFiveSecondsAndStop();
         return "Robot moved backward";
     }
 
@@ -64,6 +66,7 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while turning robot left", e);
             return "Failed to turn robot left";
         }
+        delayFiveSecondsAndStop();
         return "Robot turned left";
     }
 
@@ -78,6 +81,7 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while turning robot right", e);
             return "Failed to turn robot right";
         }
+        delayFiveSecondsAndStop();
         return "Robot turned right";
     }
 
@@ -92,6 +96,7 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while rotating robot left", e);
             return "Failed to rotate robot left";
         }
+        delayFiveSecondsAndStop();
         return "Robot rotated left";
     }
 
@@ -106,6 +111,26 @@ public record RobotMovementTools(MoveRobotService moveRobotService) {
             log.error("Error while rotating robot right", e);
             return "Failed to rotate robot right";
         }
+        delayFiveSecondsAndStop();
         return "Robot rotated right";
+    }
+
+    private void delayFiveSecondsAndStop() {
+        delay(5000);
+        try {
+            stop();
+            log.info("Robot stopped after delay");
+        } catch (Exception e) {
+            log.error("Error while stopping robot after delay", e);
+        }
+    }
+
+    private void delay(int milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Delay interrupted", e);
+        }
     }
 }
