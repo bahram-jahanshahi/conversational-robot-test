@@ -7,39 +7,45 @@ public class UtteranceBuffer {
 
     private final int maxPreRollFrames;
     private final ArrayDeque<byte[]> preRoll = new ArrayDeque<>();
-    private ByteArrayOutputStream current; // null when not recording
+    private ByteArrayOutputStream current;
 
     public UtteranceBuffer(int maxPreRollFrames) {
         this.maxPreRollFrames = maxPreRollFrames;
     }
 
+    public void clearPreRoll() {
+        preRoll.clear();
+    }
+
     /** Always call this for every frame to keep pre-roll warm. */
     public void addToPreRoll(byte[] framePcm) {
-        preRoll.addLast(framePcm);
+        // ✅ IMPORTANT: copy, don't store the same mutable array reference
+        preRoll.addLast(Arrays.copyOf(framePcm, framePcm.length));
         while (preRoll.size() > maxPreRollFrames) {
             preRoll.removeFirst();
         }
     }
 
-    /** Call when speech starts. */
     public void start() {
         current = new ByteArrayOutputStream(64_000);
-        // dump pre-roll first
         for (byte[] f : preRoll) {
             current.writeBytes(f);
         }
     }
 
-    /** Append speech frame while recording. */
     public void append(byte[] framePcm) {
-        if (current != null) current.writeBytes(framePcm);
+        if (current != null) {
+            // this is already safe because writeBytes copies immediately,
+            // but copying is also fine:
+            current.writeBytes(framePcm);
+        }
     }
 
-    /** Call when speech ends; returns full utterance PCM, and stops recording. */
     public byte[] stopAndGetPcm() {
         if (current == null) return new byte[0];
         byte[] pcm = current.toByteArray();
         current = null;
+        preRoll.clear();
         return pcm;
     }
 

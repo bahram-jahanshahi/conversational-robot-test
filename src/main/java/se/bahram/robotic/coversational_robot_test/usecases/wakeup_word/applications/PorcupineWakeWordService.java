@@ -9,6 +9,7 @@ import se.bahram.robotic.coversational_robot_test.usecases.voice_activity_detect
 import javax.sound.sampled.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Path;
 
 @Service
 @Slf4j
@@ -87,18 +88,30 @@ public class PorcupineWakeWordService {
             ByteBuffer.wrap(byteBuffer).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(pcm);
 
             int keywordIndex = porcupine.process(pcm); // pass audio frame to Porcupine :contentReference[oaicite:2]{index=2}
-            if (keywordIndex >= 0) {
-                if (keywordIndex == 0) {
-                    System.out.println("✅ Wake word detected: Hey Raz");
-                    this.runVadOnMic.execute();
-                } else if (keywordIndex == 1) {
-                    System.out.println("✅ Wake word detected: bumblebee");
-                } else {
-                    System.out.println("✅ Wake word detected: index=" + keywordIndex);
-                }
+            if (keywordIndex == 0) {
+                System.out.println("✅ Wake word detected: Hey Raz");
+
+                // Optional: small drain so the wake-word audio doesn’t appear in the utterance
+                drainMic(mic, sampleRate, 250); // 150ms
+
+                Path wav = this.runVadOnMic.execute(mic);
+                System.out.println("✅ Utterance recorded: " + wav);
             }
         }
     }
+
+    private static void drainMic(TargetDataLine mic, int sampleRate, int millis) {
+        int bytesToRead = (int)((sampleRate * (millis / 1000.0)) * 2);
+        byte[] trash = new byte[Math.min(bytesToRead, 8192)];
+        int remaining = bytesToRead;
+        while (remaining > 0) {
+            int n = Math.min(trash.length, remaining);
+            int r = mic.read(trash, 0, n);
+            if (r <= 0) break;
+            remaining -= r;
+        }
+    }
+
 
     /**
      * Ensures we fill the buffer (TargetDataLine.read can return fewer bytes than requested).

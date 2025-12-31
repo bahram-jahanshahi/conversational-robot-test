@@ -3,6 +3,7 @@ package se.bahram.robotic.coversational_robot_test.usecases.voice_activity_detec
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.sound.sampled.TargetDataLine;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,36 +24,44 @@ public class VadMicRunner {
     @Value("${app.voice.recording-directory}")
     private String voiceRecordingDirectory;
 
-    public void execute() throws Exception{
+    public Path execute(TargetDataLine mic) throws Exception {
         Path model = Paths.get(sileroVadModelPath);
 
-        try (SileroVadOnnxModel vad = new SileroVadOnnxModel(model);
-             Mic16kMono mic = new Mic16kMono(SileroVadOnnxModel.SAMPLE_RATE)) {
+        try (SileroVadOnnxModel vad = new SileroVadOnnxModel(model)) {
 
-            // You will tune these, but this is a good starting point
             Endpointing ep = new Endpointing(
-                    0.60f,  // start threshold
-                    0.35f,  // end threshold
-                    0.20,   // require ~200ms of speech to start (prevents clicks)
-                    2.00,   // require 2 seconds of non-speech to end  ✅
-                    SileroVadOnnxModel.WINDOW_SAMPLES,  // 512
-                    SileroVadOnnxModel.SAMPLE_RATE      // 16000
+                    0.65f,  // startTh
+                    0.40f,  // endTh
+                    0.10,   // start after ~200ms voiced
+                    2.00,   // end after 2s unvoiced ✅
+                    SileroVadOnnxModel.WINDOW_SAMPLES, // 512
+                    SileroVadOnnxModel.SAMPLE_RATE     // 16000
             );
 
-            UtteranceBuffer buf = new UtteranceBuffer(10);
-
+            UtteranceBuffer buf = new UtteranceBuffer(12); // 12 frames ~ 384ms pre-roll
+            buf.clearPreRoll();
+            vad.reset();
             Path outDir = Paths.get(voiceRecordingDirectory);
-            Files.createDirectories(outDir);// ~320ms pre-roll
+            Files.createDirectories(outDir);
 
-            System.out.println("Listening... (Ctrl+C to stop)");
-            while (true) {
-                // read frame PCM
-                byte[] framePcm = mic.readPcmBytes(SileroVadOnnxModel.WINDOW_SAMPLES);
+            byte[] framePcm = new byte[SileroVadOnnxModel.WINDOW_SAMPLES * 2]; // 512 samples * 2 bytes
 
-                // keep pre-roll always
+            // warm up pre-roll for ~300ms before allowing SPEECH_START
+            int warmupFrames = 10; // 10*32ms = 320ms
+            for (int i = 0; i < warmupFrames; i++) {
+                readFully(mic, framePcm, 0, framePcm.length);
                 buf.addToPreRoll(framePcm);
+            }
 
-                // run VAD on float conversion
+            System.out.println("🎙️ VAD capturing utterance...");
+            while (true) {
+                readFully(mic, framePcm, 0, framePcm.length);
+
+                if (!buf.isRecording()) {
+                    buf.addToPreRoll(framePcm);
+                }
+
+                // VAD
                 float[] frameFloat = Mic16kMono.pcm16leToFloat(framePcm);
                 float p = vad.infer(frameFloat);
 
@@ -73,26 +82,34 @@ public class VadMicRunner {
                     byte[] utterancePcm = buf.stopAndGetPcm();
                     double seconds = utterancePcm.length / 2.0 / SileroVadOnnxModel.SAMPLE_RATE;
 
-                    if (seconds < 0.5) { // 500ms
+                    vad.reset();
+
+                    if (seconds < 0.5) {
                         System.out.println("Discarded short utterance: " + seconds + "s");
+                        // keep listening for a real one
                         continue;
                     }
 
-                    // (Optional) reset VAD state between utterances
-                    vad.reset();
-
-                    // Write WAV file
                     String fileName = "utt_" + TS.format(LocalDateTime.now()) + ".wav";
                     Path wavPath = outDir.resolve(fileName);
 
                     WavWriter.writePcm16leMonoWav(wavPath, utterancePcm, SileroVadOnnxModel.SAMPLE_RATE);
+                    System.out.println("Saved: " + wavPath.toAbsolutePath() + " seconds=" + seconds);
 
-                    System.out.println("Saved: " + wavPath.toAbsolutePath() + " bytes=" + utterancePcm.length);
+                    return wavPath;
                 }
-
-                // debug
-                // System.out.printf("p=%.3f inSpeech=%s%n", p, ep.isInSpeech());
             }
         }
     }
+
+    private static void readFully(TargetDataLine line, byte[] buffer, int offset, int length) {
+        int read = 0;
+        while (read < length) {
+            int r = line.read(buffer, offset + read, length - read);
+            if (r < 0) throw new IllegalStateException("Mic line closed while reading.");
+            read += r;
+        }
+    }
+
+
 }

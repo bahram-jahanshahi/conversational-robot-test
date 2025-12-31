@@ -12,6 +12,8 @@ import se.bahram.robotic.coversational_robot_test.usecases.text_to_speech.applic
 import se.bahram.robotic.coversational_robot_test.usecases.text_to_speech.domain.SavedAudio;
 import se.bahram.robotic.coversational_robot_test.usecases.wakeup_word.applications.PorcupineWakeWordService;
 
+import javax.sound.sampled.AudioSystem;
+
 
 @SpringBootApplication
 @EnableScheduling
@@ -35,6 +37,13 @@ public class CoversationalRobotTestApplication implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+
+        for (var mi : AudioSystem.getMixerInfo()) {
+            var m = AudioSystem.getMixer(mi);
+            if (m.getTargetLineInfo().length > 0) {
+                //System.out.println(mi.getName() + " | " + mi.getDescription());
+            }
+        }
 
         this.porcupineWakeWordService.execute();
     }
