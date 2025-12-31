@@ -26,4 +26,4 @@ app:
     directory: ${captured_image_upload_dir}
   porcupine:
     api-key: ${PORCUPINE_API_KEY}
-    hey-raz-keyword-file-path: ${hey-raz_keyword-file-path}
+    hey-raz-keyword-file-path: ${hey_raz_keyword_file_path}

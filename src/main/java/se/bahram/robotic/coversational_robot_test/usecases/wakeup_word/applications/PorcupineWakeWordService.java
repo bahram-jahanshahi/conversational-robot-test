@@ -1,6 +1,7 @@
 package se.bahram.robotic.coversational_robot_test.usecases.wakeup_word.applications;
 
 import ai.picovoice.porcupine.Porcupine;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @Service
+@Slf4j
 public class PorcupineWakeWordService {
 
     @Value("${app.porcupine.api-key}")
@@ -19,6 +21,10 @@ public class PorcupineWakeWordService {
 
     public void execute() throws Exception {
         // Implementation for Porcupine Wake Word detection
+        log.info("Waking up Porcupine WakeWord Service");
+        // 1) Create Porcupine wake word engine
+        log.info("Access Key: {}", porcupineApiKey);
+        log.info("heyRazKeywordFilePath: {}", heyRazKeywordFilePath);
         Porcupine porcupine = new Porcupine.Builder()
                 .setAccessKey(porcupineApiKey)
                 //.setBuiltInKeywords( new Porcupine.BuiltInKeyword[]{
@@ -76,7 +82,7 @@ public class PorcupineWakeWordService {
             int keywordIndex = porcupine.process(pcm); // pass audio frame to Porcupine :contentReference[oaicite:2]{index=2}
             if (keywordIndex >= 0) {
                 if (keywordIndex == 0) {
-                    System.out.println("✅ Wake word detected: porcupine");
+                    System.out.println("✅ Wake word detected: Hey Raz");
                 } else if (keywordIndex == 1) {
                     System.out.println("✅ Wake word detected: bumblebee");
                 } else {
