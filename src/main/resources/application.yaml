@@ -27,3 +27,7 @@ app:
   porcupine:
     api-key: ${PORCUPINE_API_KEY}
     hey-raz-keyword-file-path: ${hey_raz_keyword_file_path}
+  silero:
+    vad-model-path: ${SILERO_VAD_MODEL_PATH}
+  voice:
+    recording-directory: ${VOICE_RECORDING_DIRECTORY}

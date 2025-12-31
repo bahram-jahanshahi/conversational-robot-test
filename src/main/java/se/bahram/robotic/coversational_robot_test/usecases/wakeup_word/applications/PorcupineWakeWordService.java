@@ -4,6 +4,7 @@ import ai.picovoice.porcupine.Porcupine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import se.bahram.robotic.coversational_robot_test.usecases.voice_activity_detector.applications.services.VadMicRunner;
 
 import javax.sound.sampled.*;
 import java.nio.ByteBuffer;
@@ -18,6 +19,12 @@ public class PorcupineWakeWordService {
 
     @Value("${app.porcupine.hey-raz-keyword-file-path}")
     private String heyRazKeywordFilePath;
+
+    private final VadMicRunner runVadOnMic;
+
+    public PorcupineWakeWordService(VadMicRunner runVadOnMic) {
+        this.runVadOnMic = runVadOnMic;
+    }
 
     public void execute() throws Exception {
         // Implementation for Porcupine Wake Word detection
@@ -83,6 +90,7 @@ public class PorcupineWakeWordService {
             if (keywordIndex >= 0) {
                 if (keywordIndex == 0) {
                     System.out.println("✅ Wake word detected: Hey Raz");
+                    this.runVadOnMic.execute();
                 } else if (keywordIndex == 1) {
                     System.out.println("✅ Wake word detected: bumblebee");
                 } else {
