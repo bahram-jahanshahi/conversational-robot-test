@@ -8,6 +8,8 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 import se.bahram.robotic.coversational_robot_test.usecases.transcribe_audio.applications.ports.in.TranscribeAudio;
 
+import java.nio.file.Path;
+
 @Service
 public class TranscribeAudioService implements TranscribeAudio {
 
@@ -18,7 +20,7 @@ public class TranscribeAudioService implements TranscribeAudio {
     }
 
     @Override
-    public String execute(String audioFilePath) throws Exception {
+    public String execute(Path audioFilePath) throws Exception {
 
         var audioFile = new FileSystemResource(audioFilePath);
 

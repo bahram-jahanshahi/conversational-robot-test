@@ -4,7 +4,9 @@ import ai.picovoice.porcupine.Porcupine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import se.bahram.robotic.coversational_robot_test.usecases.chat_with_robot.applications.ports.in.CommandRobot;
 import se.bahram.robotic.coversational_robot_test.usecases.sound_player.applications.ports.in.WavPlayer;
+import se.bahram.robotic.coversational_robot_test.usecases.transcribe_audio.applications.ports.in.TranscribeAudio;
 import se.bahram.robotic.coversational_robot_test.usecases.voice_activity_detector.applications.services.VadMicRunner;
 
 import javax.sound.sampled.*;
@@ -23,13 +25,22 @@ public class PorcupineWakeWordService {
     @Value("${app.porcupine.hey-raz-keyword-file-path}")
     private String heyRazKeywordFilePath;
 
+    @Value("${app.voice.i-am-listening-audio-file-path}")
+    private String iAmListeningAudioFilePath;
+
     private final VadMicRunner runVadOnMic;
 
     private final WavPlayer wavPlayer;
 
-    public PorcupineWakeWordService(VadMicRunner runVadOnMic, WavPlayer wavPlayer) {
+    private final TranscribeAudio transcribeAudio;
+
+    private final CommandRobot commandRobot;
+
+    public PorcupineWakeWordService(VadMicRunner runVadOnMic, WavPlayer wavPlayer, TranscribeAudio transcribeAudio, CommandRobot commandRobot) {
         this.runVadOnMic = runVadOnMic;
         this.wavPlayer = wavPlayer;
+        this.transcribeAudio = transcribeAudio;
+        this.commandRobot = commandRobot;
     }
 
     public void execute() throws Exception {
@@ -87,6 +98,7 @@ public class PorcupineWakeWordService {
         short[] pcm = new short[frameLength];
 
         while (true) {
+
             readFully(mic, byteBuffer, 0, byteBuffer.length);
 
             // Convert little-endian bytes -> signed 16-bit PCM samples
@@ -96,12 +108,19 @@ public class PorcupineWakeWordService {
             if (keywordIndex == 0) {
                 System.out.println("✅ Wake word detected: Hey Raz");
 
-                wavPlayer.execute(Paths.get("/Users/bahram/Projects/voice_models/i_am_listening.wav"));
+                wavPlayer.execute(Paths.get(iAmListeningAudioFilePath));
                 // Optional: small drain so the wake-word audio doesn’t appear in the utterance
                 drainMic(mic, sampleRate, 250); // 150ms
 
                 Path wav = this.runVadOnMic.execute(mic);
                 System.out.println("✅ Utterance recorded: " + wav);
+
+                String transcription = this.transcribeAudio.execute(wav);
+                System.out.println("📝 Transcription: " + transcription);
+
+                commandRobot.execute(transcription);
+
+                System.out.println("Waiting for the wake word...");
             }
         }
     }

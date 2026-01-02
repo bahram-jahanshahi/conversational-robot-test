@@ -31,3 +31,4 @@ app:
     vad-model-path: ${SILERO_VAD_MODEL_PATH}
   voice:
     recording-directory: ${VOICE_RECORDING_DIRECTORY}
+    i-am-listening-audio-file-path: ${I_AM_LISTENING_AUDIO_FILE_PATH}

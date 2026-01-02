@@ -53,7 +53,7 @@ public class WokeByMicService implements WokeByMic {
 
         this.pauseListening.execute();
 
-        var transcription = this.transcribeAudio.execute(out.toFile().getAbsolutePath());
+        var transcription = this.transcribeAudio.execute(out);
 
         var reply = commandRobot.execute(transcription);
 
