@@ -13,12 +13,13 @@ import se.bahram.robotic.coversational_robot_test.usecases.capture_photo.applica
 import se.bahram.robotic.coversational_robot_test.usecases.capture_photo.domain.CapturedImage;
 
 import java.io.File;
+import java.net.URI;
 
 
 @Service
 public class CapturePhotoViaPythonService implements CapturePhotoViaPython {
 
-    private static final String BASE_URL = "http://127.0.0.1:8001";
+    private static final String BASE_URL = "http://127.0.0.1:8000";
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -28,7 +29,7 @@ public class CapturePhotoViaPythonService implements CapturePhotoViaPython {
     public CapturedImage execute() {
 
         String url = UriComponentsBuilder
-                .fromHttpUrl(BASE_URL)
+                .fromUri(URI.create(BASE_URL))
                 .path("/capture")
                 .queryParam("device_index", 0)
                 .queryParam("width", 1280)
