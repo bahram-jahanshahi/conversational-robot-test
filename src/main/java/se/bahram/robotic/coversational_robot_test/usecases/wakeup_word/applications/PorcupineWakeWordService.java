@@ -4,12 +4,14 @@ import ai.picovoice.porcupine.Porcupine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import se.bahram.robotic.coversational_robot_test.usecases.sound_player.applications.ports.in.WavPlayer;
 import se.bahram.robotic.coversational_robot_test.usecases.voice_activity_detector.applications.services.VadMicRunner;
 
 import javax.sound.sampled.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 @Slf4j
@@ -23,8 +25,11 @@ public class PorcupineWakeWordService {
 
     private final VadMicRunner runVadOnMic;
 
-    public PorcupineWakeWordService(VadMicRunner runVadOnMic) {
+    private final WavPlayer wavPlayer;
+
+    public PorcupineWakeWordService(VadMicRunner runVadOnMic, WavPlayer wavPlayer) {
         this.runVadOnMic = runVadOnMic;
+        this.wavPlayer = wavPlayer;
     }
 
     public void execute() throws Exception {
@@ -91,6 +96,7 @@ public class PorcupineWakeWordService {
             if (keywordIndex == 0) {
                 System.out.println("✅ Wake word detected: Hey Raz");
 
+                wavPlayer.execute(Paths.get("/Users/bahram/Projects/voice_models/i_am_listening.wav"));
                 // Optional: small drain so the wake-word audio doesn’t appear in the utterance
                 drainMic(mic, sampleRate, 250); // 150ms
 
