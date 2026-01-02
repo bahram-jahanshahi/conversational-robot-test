@@ -1,3 +1,4 @@
+// java
 package se.bahram.robotic.coversational_robot_test.usecases.sound_player.applications;
 
 import org.springframework.stereotype.Service;
@@ -5,8 +6,6 @@ import se.bahram.robotic.coversational_robot_test.usecases.sound_player.applicat
 
 import java.nio.file.Path;
 import javax.sound.sampled.*;
-import java.io.File;
-import java.nio.file.Path;
 
 @Service
 public class WavPlayerService implements WavPlayer {
@@ -15,8 +14,6 @@ public class WavPlayerService implements WavPlayer {
         try (AudioInputStream ais = AudioSystem.getAudioInputStream(wavFilePath.toFile())) {
 
             AudioFormat baseFormat = ais.getFormat();
-
-            // Ensure format is playable (PCM_SIGNED)
             AudioFormat decodedFormat = new AudioFormat(
                     AudioFormat.Encoding.PCM_SIGNED,
                     baseFormat.getSampleRate(),
@@ -27,21 +24,21 @@ public class WavPlayerService implements WavPlayer {
                     false
             );
 
-            try (AudioInputStream decodedAis =
-                         AudioSystem.getAudioInputStream(decodedFormat, ais)) {
+            try (AudioInputStream decodedAis = AudioSystem.getAudioInputStream(decodedFormat, ais)) {
+                DataLine.Info info = new DataLine.Info(SourceDataLine.class, decodedFormat);
+                try (SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info)) {
+                    line.open(decodedFormat);
+                    line.start();
 
-                DataLine.Info info = new DataLine.Info(Clip.class, decodedFormat);
-                Clip clip = (Clip) AudioSystem.getLine(info);
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = decodedAis.read(buffer, 0, buffer.length)) != -1) {
+                        line.write(buffer, 0, bytesRead);
+                    }
 
-                clip.open(decodedAis);
-                clip.start();
-
-                // Wait until playback finishes
-                while (clip.isRunning()) {
-                    Thread.sleep(10);
+                    line.drain();
+                    line.stop();
                 }
-
-                clip.close();
             }
         }
     }
