@@ -60,7 +60,7 @@ public class CoversationalRobotTestApplication implements ApplicationRunner {
 
     //@Scheduled(fixedDelay = 10000)
     public void capturePhoto() throws Exception {
-        String description = describePhotoByOpenAi.execute();
+        String description = describePhotoByOpenAi.execute("What is shown in the photo?");
         System.out.println("Photo description: " + description);
 
         byte[] audioBytes = textToSpeechByOpenAiService.textToSpeech(description);

@@ -31,7 +31,7 @@ public class TextToSpeechByOpenAiService {
     public byte[] textToSpeech(String text) throws Exception {
 
         var speechOptions = OpenAiAudioSpeechOptions.builder()
-                .voice(OpenAiAudioApi.SpeechRequest.Voice.ECHO)
+                .voice(OpenAiAudioApi.SpeechRequest.Voice.SAGE)
                 .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
                 .speed(1.0)
                 .model(OpenAiAudioApi.TtsModel.TTS_1.value)
@@ -64,6 +64,12 @@ public class TextToSpeechByOpenAiService {
     public void textToSpeechAndSave(String text, String fileName) throws Exception {
         byte[] audio = textToSpeech(text);
         saveAudio(audio, fileName);
+    }
+
+    public void textToSpeechAndPlay(String text) throws Exception {
+        byte[] audio = textToSpeech(text);
+        SavedAudio savedAudio = saveAudio(audio, "temp_audio.mp3");
+        playAudio(savedAudio.fileName());
     }
 
     public static void playMP3(String fileName) throws IOException, JavaLayerException {

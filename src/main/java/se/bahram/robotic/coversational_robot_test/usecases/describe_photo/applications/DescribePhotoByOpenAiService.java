@@ -27,20 +27,19 @@ public class DescribePhotoByOpenAiService implements DescribePhotoByOpenAi {
     }
 
     @Override
-    public String execute() throws Exception {
+    public String execute(String questionAboutPhoto) throws Exception {
 
         log.info("Starting to describe photo by open AI");
         log.info("Capturing photo via python...");
         CapturedImage  capturedImage = this.capturePhotoViaPython.execute();
         log.info("Capturing photo via python done");
+        log.info("Ask question about photo: {}", questionAboutPhoto);
 
         String response = chatClient.prompt()
-                .user(u -> u.text("Tell me what you see in this image.")
+                .user(u -> u.text(questionAboutPhoto)
                         .media(MimeTypeUtils.IMAGE_JPEG, new FileSystemResource(capturedImage.filePath())))
                 .call()
                 .content();
-
-        log.info("Capturing photo via python done");
         log.info("The description of the photo is: {}", response);
         return response;
     }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.bahram.robotic.coversational_robot_test.usecases.chat_with_robot.applications.ports.in.CommandRobot;
 import se.bahram.robotic.coversational_robot_test.usecases.sound_player.applications.ports.in.WavPlayer;
+import se.bahram.robotic.coversational_robot_test.usecases.text_to_speech.applications.TextToSpeechByOpenAiService;
 import se.bahram.robotic.coversational_robot_test.usecases.transcribe_audio.applications.ports.in.TranscribeAudio;
 import se.bahram.robotic.coversational_robot_test.usecases.voice_activity_detector.applications.services.VadMicRunner;
 
@@ -36,11 +37,14 @@ public class PorcupineWakeWordService {
 
     private final CommandRobot commandRobot;
 
-    public PorcupineWakeWordService(VadMicRunner runVadOnMic, WavPlayer wavPlayer, TranscribeAudio transcribeAudio, CommandRobot commandRobot) {
+    private final TextToSpeechByOpenAiService textToSpeechByOpenAiService;
+
+    public PorcupineWakeWordService(VadMicRunner runVadOnMic, WavPlayer wavPlayer, TranscribeAudio transcribeAudio, CommandRobot commandRobot, TextToSpeechByOpenAiService textToSpeechByOpenAiService) {
         this.runVadOnMic = runVadOnMic;
         this.wavPlayer = wavPlayer;
         this.transcribeAudio = transcribeAudio;
         this.commandRobot = commandRobot;
+        this.textToSpeechByOpenAiService = textToSpeechByOpenAiService;
     }
 
     public void execute() throws Exception {
@@ -118,7 +122,8 @@ public class PorcupineWakeWordService {
                 String transcription = this.transcribeAudio.execute(wav);
                 System.out.println("📝 Transcription: " + transcription);
 
-                commandRobot.execute(transcription);
+                var robotReply = commandRobot.execute(transcription);
+                textToSpeechByOpenAiService.textToSpeechAndPlay(robotReply.reply());
 
                 System.out.println("Waiting for the wake word...");
             }

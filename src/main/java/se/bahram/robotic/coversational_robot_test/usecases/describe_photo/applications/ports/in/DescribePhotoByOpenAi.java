@@ -4,5 +4,5 @@ import se.bahram.robotic.coversational_robot_test.usecases.capture_photo.domain.
 
 public interface DescribePhotoByOpenAi {
 
-    String execute() throws Exception;
+    String execute(String questionAboutPhoto) throws Exception;
 }

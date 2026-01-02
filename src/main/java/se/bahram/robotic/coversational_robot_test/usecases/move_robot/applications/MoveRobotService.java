@@ -11,7 +11,7 @@ public class MoveRobotService implements MoveRobot {
 
     private final RestClient restClient = RestClient.create();
 
-    private final boolean movingEnabled = false;
+    private final boolean movingEnabled = true;
 
     @Override
     public void execute(RobotMovementDirection robotMovementDirection, RobotMovementTime movingTime) throws Exception {
